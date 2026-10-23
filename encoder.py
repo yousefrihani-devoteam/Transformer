@@ -16,9 +16,35 @@ class Encoder(nn.Module):
         self.attention = nn.MultiHeadAttention(embed_dim = 256, num_heads = 2, kdim = 256, vdim = 256)
         self.ff = FeedForward(256, 256 * 4)
 
+        self.norm = nn.LayerNorm(256)
+
+        
+
 
 
     def forward (self, x):
+        seq_len = x.size(1)
+
+        arange = torch.arange(0, seq_len, dtype=torch.long, device = x.device)
+        positional = self.positional(arange)
+        embeddings = self.embedding(x)
+        x_processed = embeddings + positional 
+
+        X = self.attention(x_processed)
+        X = self.norm(X + x_processed)
+
+        ff_res = self.ff.forward(X)
+
+        X = self.norm(ff_res + X)
+
+
+
+
+        
+
+
+
+        
 
 
 
