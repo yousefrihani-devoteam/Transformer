@@ -12,20 +12,25 @@ from FeedForward import FeedForward
 
 
 def Decoder(nn.Module):
-    def __init__(self, seq_len):
+    def __init__(self, Trt_vocab_size, d_model, dropout = 0.1, num_heads = 2):
         super(Decoder, self).__init__()
-        self.embedding = nn.Embedding(num_embeddings = seq_len, embedding_dim= 256)
-        self.positional = nn.Embedding(num_embeddings = seq_len, embedding_dim= 256)
-        self.mask_attention = CrossAttention(num_embed = 256, seq_length = seq_len, num_heads = 3 )
-        self.cross_attention = CrossAttention(num_embed = 256, seq_length = seq_len, num_heads = 3 )
-        self.ff = FeedForward(256, 256 * 4)
+        self.embedding = nn.Embedding(num_embeddings = Trt_vocab_size, embedding_dim= d_model)
+        self.positional = nn.Embedding(num_embeddings = Trt_vocab_size, embedding_dim= d_model)
+        self.mask_attention = CrossAttention(num_embed = d_model, seq_length = Trt_vocab_size, num_heads = num_heads )
+        self.cross_attention = CrossAttention(num_embed = d_model, seq_length = Trt_vocab_size, num_heads = num_heads )
+        self.ff = FeedForward(d_model, d_model * 4)
+
+        self.relu = nn.ReLU()
+
 
         
-        self.norm1 = nn.LayerNorm(256)
-        self.norm2 = nn.layerNorm(256)
-        self.norm3 = nn.layerNorm(256)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.norm3 = nn.LayerNorm(d_model)
 
-        self.ln = nn.Linear(256, seq_len)
+        self.dropout = nn.Dropout(dropout)
+
+        self.ln = nn.Linear(d_model, Trt_vocab_size)
 
 
 
@@ -39,7 +44,7 @@ def Decoder(nn.Module):
         x_processed = embeddings + positional 
         
         X = self.mask_attention.forward(x_processed, x_processed, x_processed, tgt_mask)
-        Xn1 = self.norm1(X + x_processed)
+        Xn1 = self.dropout(self.norm1(X + x_processed))
 
         X = self.cross_attention(encoder_output, Xn1, encoder_output, src_mask)
 
