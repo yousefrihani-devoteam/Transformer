@@ -11,13 +11,13 @@ from FeedForward import FeedForward
 
 
 
-def Decoder(nn.Module):
-    def __init__(self, Trt_vocab_size, d_model, dropout = 0.1, num_heads = 2):
+class Decoder(nn.Module):
+    def __init__(self, Seq_length ,Trt_vocab_size, d_model, dropout = 0.1, num_heads = 2):
         super(Decoder, self).__init__()
         self.embedding = nn.Embedding(num_embeddings = Trt_vocab_size, embedding_dim= d_model)
         self.positional = nn.Embedding(num_embeddings = Trt_vocab_size, embedding_dim= d_model)
         self.mask_attention = CrossAttention(num_embed = d_model, seq_length = Trt_vocab_size, num_heads = num_heads )
-        self.cross_attention = CrossAttention(num_embed = d_model, seq_length = Trt_vocab_size, num_heads = num_heads )
+        self.cross_attention = CrossAttention(num_embed = d_model, seq_length = Seq_length, num_heads = num_heads )
         self.ff = FeedForward(d_model, d_model * 4)
 
         self.relu = nn.ReLU()
@@ -46,12 +46,12 @@ def Decoder(nn.Module):
         X = self.mask_attention.forward(x_processed, x_processed, x_processed, tgt_mask)
         Xn1 = self.dropout(self.norm1(X + x_processed))
 
-        X = self.cross_attention(encoder_output, Xn1, encoder_output, src_mask)
+        X = self.cross_attention(Xn1, encoder_output , encoder_output, src_mask)
 
         Xn2 = self.norm2(X + Xn1)
 
         X = self.ff.forward(Xn2)
-        X = self.norm3(X)
+        X = self.norm3(X + Xn2)
 
 
         return self.ln(X)
