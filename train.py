@@ -11,8 +11,8 @@ from data import TextDataPrep
 prep = TextDataPrep()
 ds = prep.prepare()
 
-train_loader = DataLoader(ds["train"], batch_size=32, shuffle=True, collate_fn=prep.collate)
-val_loader   = DataLoader(ds["validation"], batch_size=32, collate_fn=prep.collate)
+train_loader = DataLoader(ds["train"], batch_size=42, shuffle=True, collate_fn=prep.collate)
+val_loader   = DataLoader(ds["validation"], batch_size=42, collate_fn=prep.collate)
 
 vocab_size = len(prep.tok)
 
